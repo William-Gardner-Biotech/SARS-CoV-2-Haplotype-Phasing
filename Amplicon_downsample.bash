@@ -19,8 +19,8 @@ R2='downsample_R2.fastq'
 
 # Downsize the sample
 # Ensure you use the same random seed -s100 to keep paired reads
-seqtk sample -s100 "$in1" 100000 > "$R1"
-seqtk sample -s100 "$in2" 100000 > "$R2"
+#seqtk sample -s100 "$in1" 100000 > "$R1"
+#seqtk sample -s100 "$in2" 100000 > "$R2"
 
 # Map the merged reads to the reference genome
 bbmap.sh in1=$R1 in2=$R2 ref=$ref_genome out=$mapped_reads
@@ -35,7 +35,7 @@ samtools sort mapped_reads.bam -o sorted_mapped_reads.bam
 
 samtools index sorted_mapped_reads.bam
 ECHO 'check2'
-samtools view sorted_mapped_reads.bam ref:2000-5000
+samtools view -b sorted_mapped_reads.bam "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":5000-5500 > extracted_amplicons.bam
 
 # Extracting amplicons
 
