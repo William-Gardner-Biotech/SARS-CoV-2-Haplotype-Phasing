@@ -22,9 +22,6 @@ R2='downsample_R2.fastq'
 seqtk sample -s100 "$in1" 100000 > "$R1"
 seqtk sample -s100 "$in2" 100000 > "$R2"
 
-# Merge the paired end reads
-# bbmerge.sh in=$R1 in2=$R2 reads=-1 out=$merged_reads
-
 # Map the merged reads to the reference genome
 bbmap.sh in1=$R1 in2=$R2 ref=$ref_genome out=$mapped_reads
 
@@ -33,14 +30,12 @@ bbmap.sh in1=$R1 in2=$R2 ref=$ref_genome out=$mapped_reads
 # BAM to SAM
 samtools view -b -o mapped_reads.bam $mapped_reads
 ECHO 'check1'
-#samtools index mapped_reads.bam
-ECHO 'check2'
-samtools view -b -o filtered_reads.bam -f 0x100 -F 0x4 mapped_reads.bam
-ECHO 'check3'
-samtools index filtered_reads.bam
-ECHO 'check4'
+# Fixes the indexing errors
+samtools sort mapped_reads.bam -o sorted_mapped_reads.bam
 
-samtools view -b -o extracted_amplicons.bam filtered_reads.bam ref:20000-21000
+samtools index sorted_mapped_reads.bam
+ECHO 'check2'
+samtools view sorted_mapped_reads.bam ref:2000-5000
 
 # Extracting amplicons
 
