@@ -1,11 +1,6 @@
 #!/bin/bash
 
-"""
-This script maps merges the reads first instead of in1 and in2 option on bbmap
-
-Q: The sampling downsize has worked but we still run into amplicon escapes for some weird reason. 
-samtools view -b ref:start-end works decently but there are still a few out there,
-A: By using a stricter bbmap maxindel we have reduced these escape amplicons"""
+#This script maps merges the reads first instead of in1 and in2 option on bbmap
 
 # Input File names
 in1='Ohio-515-rep2_S11_L001_R1_001.fastq.gz'
@@ -17,6 +12,8 @@ bbmap="$HOME/Bioinformatics/bbmap"  # Use $HOME to specify the home directory
 merged_reads='merged_reads.fasta'
 mer_mapped_reads='mer_mapped_reads.sam'
 mer_mapped_reads_bam='mer_mapped_reads.bam'
+extracted='extract_mermap.bam'
+sorted_mm='sorted_mermap.bam'
 
 # Downsample Numbers
 seed=100
@@ -47,12 +44,14 @@ bbmap.sh in=$merged_reads out=$mer_mapped_reads ref=$ref_genome maxindel=200
 
 ECHO 'CHECK2'
 
-samtools view -b -o mermap.bam mermap_reads.sam
+samtools view -b -o $mer_mapped_reads_bam $mer_mapped_reads
 
 ECHO 'CHECK3'
 
-samtools sort mermap.bam -o sorted_mermap.bam 
+samtools sort $mer_mapped_reads_bam -o $sorted_mm
 
-samtools index sorted_mermap.bam
+samtools index $sorted_mm
 
-samtools view -b sorted_mermap.bam "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":5000-5500 > extract_mermap.bam
+samtools view -b $sorted_mm "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":5000-5500 > $extracted
+
+ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
