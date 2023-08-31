@@ -3,8 +3,10 @@ A pipeline that can be used to haplotype phase SARS-CoV-2 amplicons from large w
 
 Currently a work in progress (WIP). 
 
+mf = merge first
+
 Requirements:
 
-Conda
-
 seqtk
+bbtools
+samtools
