@@ -15,12 +15,20 @@ mer_mapped_reads_bam='mer_mapped_reads.bam'
 extracted='extract_mermap.bam'
 sorted_mm='sorted_mermap.bam'
 
+# Region of Interest
+ROIstart=21200
+ROIend=21444
+
+#
+
 # Downsample Numbers
 seed=100
 size=100000
 
+ECHO 'RUNNING'
+
 # Collect number of reads in the fastq without unzipping
-seqtk size Ohio-515-rep2_S11_L001_R1_001.fastq.gz
+seqtk size $in1
 
 # OUTPUT: 21014011 3173115661
 R1='downsample_R1.fastq'
@@ -28,8 +36,8 @@ R2='downsample_R2.fastq'
 
 # Downsize the sample
 # Ensure you use the same random seed -s100 to keep paired reads
-seqtk sample "-s$seed" $in1 100000 > "$R1"
-seqtk sample "-s$seed" $in2 100000 > "$R2"
+#seqtk sample "-s$seed" $in1 100000 > "$R1"
+#seqtk sample "-s$seed" $in2 100000 > "$R2"
 
 # Drop the unmapped reads 
 # -b makes bam file, -o flags output file
@@ -52,6 +60,11 @@ samtools sort $mer_mapped_reads_bam -o $sorted_mm
 
 samtools index $sorted_mm
 
-samtools view -b $sorted_mm "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":5000-5500 > $extracted
+samtools view -b $sorted_mm "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":$ROIstart-$ROIend > $extracted
 
+samtools index $extracted
 ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
+
+python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o Filtered_further.bam
+
+ECHO 'FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS Filtered_further.bam'
