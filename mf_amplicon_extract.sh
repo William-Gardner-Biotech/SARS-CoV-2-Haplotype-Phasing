@@ -6,19 +6,22 @@
 in1='Ohio-515-rep2_S11_L001_R1_001.fastq.gz'
 in2='Ohio-515-rep2_S11_L001_R2_001.fastq.gz'
 ref_genome="$HOME/Bioinformatics/Viral_Genomes/SARS-COV-2-NC_045512.2.fasta"  # Use $HOME to specify the home directory
+seqID_folder=$(basename "$in1" .fastq.gz | sed 's/R1/RN/')/
+
+# Region of Interest
+ROIstart=4691
+ROIend=4946
 
 # Varnames
 bbmap="$HOME/Bioinformatics/bbmap"  # Use $HOME to specify the home directory
+processed_folder="amp_$ROIstart-$ROIend/"
 merged_reads='merged_reads.fasta'
 mer_mapped_reads='mer_mapped_reads.sam'
 mer_mapped_reads_bam='mer_mapped_reads.bam'
 extracted='extract_mermap.bam'
 sorted_mm='sorted_mermap.bam'
 
-# Region of Interest
-ROIstart=21200
-ROIend=21444
-
+# Test params 1 21200-21444 yields 1 million reads
 #
 
 # Downsample Numbers
@@ -44,11 +47,13 @@ R2='downsample_R2.fastq'
 # BAM to SAM
 ECHO 'Merged checkpoints'
 
-bbmerge.sh in1=$R1 in2=$R2 out=$merged_reads
+#bbmerge.sh in1=$R1 in2=$R2 out=$merged_reads
+#Testing on whole dataset
+bbmerge.sh in1=$in1 in2=$in2 out=$merged_reads
 
 ECHO 'CHECK1'
 
-bbmap.sh in=$merged_reads out=$mer_mapped_reads ref=$ref_genome maxindel=200
+bbmap.sh in=$merged_reads out=$mer_mapped_reads ref=$ref_genome maxindel=200 threads=8
 
 ECHO 'CHECK2'
 
@@ -58,13 +63,19 @@ ECHO 'CHECK3'
 
 samtools sort $mer_mapped_reads_bam -o $sorted_mm
 
+ECHO 'CHECK4'
+
 samtools index $sorted_mm
 
+ECHO 'CHECK5'
+
 samtools view -b $sorted_mm "NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome":$ROIstart-$ROIend > $extracted
+
+ECHO 'CHECK6'
 
 samtools index $extracted
 ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
 
-python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o Filtered_further.bam
+python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o "amp_$RIOstart-$ROIend_final_filter.bam"
 
 ECHO 'FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS Filtered_further.bam'
