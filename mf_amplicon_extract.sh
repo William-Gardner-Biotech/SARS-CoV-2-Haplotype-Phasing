@@ -39,8 +39,8 @@ R2='downsample_R2.fastq'
 
 # Downsize the sample
 # Ensure you use the same random seed -s100 to keep paired reads
-#seqtk sample "-s$seed" $in1 100000 > "$R1"
-#seqtk sample "-s$seed" $in2 100000 > "$R2"
+seqtk sample "-s$seed" $in1 100000 > "$R1"
+seqtk sample "-s$seed" $in2 100000 > "$R2"
 
 # Drop the unmapped reads 
 # -b makes bam file, -o flags output file
@@ -49,7 +49,7 @@ ECHO 'Merged checkpoints'
 
 #bbmerge.sh in1=$R1 in2=$R2 out=$merged_reads
 #Testing on whole dataset
-bbmerge.sh in1=$in1 in2=$in2 out=$merged_reads
+bbmerge.sh in1=$R1 in2=$R2 out=$merged_reads
 
 ECHO 'CHECK1'
 
@@ -79,3 +79,23 @@ ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
 python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o "amp_$RIOstart-$ROIend_final_filter.bam"
 
 ECHO 'FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS Filtered_further.bam'
+
+ECHO 'CHECK7'
+
+# Variant calling using Samtools mpileup
+bcftools mpileup -uf $ref_genome $extracted | bcftools call -mv > variants.bcf
+
+ECHO 'CHECK8'
+
+# Index the BCF file for efficient access
+bcftools index variants.bcf
+
+ECHO 'CHECK9'
+
+# Phase variants using BCFtools
+bcftools +split-vep -Ob -o phased_variants.bcf variants.bcf
+
+ECHO 'CHECK10'
+
+# Index the phased BCF file
+bcftools index phased_variants.bcf
