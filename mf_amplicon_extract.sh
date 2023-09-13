@@ -3,8 +3,8 @@
 #This script maps merges the reads first instead of in1 and in2 option on bbmap
 
 # Input File names
-in1='Ohio-515-rep2_S11_L001_R1_001.fastq.gz'
-in2='Ohio-515-rep2_S11_L001_R2_001.fastq.gz'
+in1='data/Ohio-515-rep2_S11_L001_R1_001.fastq.gz'
+in2='data/Ohio-515-rep2_S11_L001_R2_001.fastq.gz'
 ref_genome="$HOME/Bioinformatics/Viral_Genomes/SARS-COV-2-NC_045512.2.fasta"  # Use $HOME to specify the home directory
 seqID_folder=$(basename "$in1" .fastq.gz | sed 's/R1/RN/')/
 
@@ -15,11 +15,12 @@ ROIend=4946
 # Varnames
 bbmap="$HOME/Bioinformatics/bbmap"  # Use $HOME to specify the home directory
 processed_folder="amp_$ROIstart-$ROIend/"
-merged_reads='merged_reads.fasta'
-mer_mapped_reads='mer_mapped_reads.sam'
-mer_mapped_reads_bam='mer_mapped_reads.bam'
-extracted='extract_mermap.bam'
-sorted_mm='sorted_mermap.bam'
+merged_reads='data/merged_reads.fasta'
+mer_mapped_reads='data/mer_mapped_reads.sam'
+mer_mapped_reads_bam='data/mer_mapped_reads.bam'
+extracted='data/extract_mermap.bam'
+sorted_mm='data/sorted_mermap.bam'
+pre_phase="amp_$ROIstart-$ROIend_final_filter.bam"
 
 # Test params 1 21200-21444 yields 1 million reads
 #
@@ -34,8 +35,8 @@ ECHO 'RUNNING'
 seqtk size $in1
 
 # OUTPUT: 21014011 3173115661
-R1='downsample_R1.fastq'
-R2='downsample_R2.fastq'
+R1='data/downsample_R1.fastq'
+R2='data/downsample_R2.fastq'
 
 # Downsize the sample
 # Ensure you use the same random seed -s100 to keep paired reads
@@ -76,7 +77,7 @@ ECHO 'CHECK6'
 samtools index $extracted
 ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
 
-python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o "amp_$RIOstart-$ROIend_final_filter.bam"
+python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o $pre_phase
 
 ECHO 'FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS Filtered_further.bam'
 
