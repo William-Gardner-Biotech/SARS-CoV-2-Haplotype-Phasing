@@ -9,8 +9,8 @@ ref_genome="$HOME/Bioinformatics/Viral_Genomes/SARS-COV-2-NC_045512.2.fasta"  # 
 seqID_folder=$(basename "$in1" .fastq.gz | sed 's/R1/RN/')/
 
 # Region of Interest
-ROIstart=4691
-ROIend=4946
+ROIstart=4520
+ROIend=4748
 
 # Varnames
 bbmap="$HOME/Bioinformatics/bbmap"  # Use $HOME to specify the home directory
@@ -20,7 +20,7 @@ mer_mapped_reads='data/mer_mapped_reads.sam'
 mer_mapped_reads_bam='data/mer_mapped_reads.bam'
 extracted='data/extract_mermap.bam'
 sorted_mm='data/sorted_mermap.bam'
-pre_phase="amp_$ROIstart-$ROIend_final_filter.bam"
+pre_phase="amp_${ROIstart}-${ROIend}_final_filter.bam"
 
 # Test params 1 21200-21444 yields 1 million reads
 #
@@ -79,24 +79,23 @@ ECHO "COMPLETED AMPLICON EXTRACTION. FILE SAVED AS $extracted"
 
 python3 amplicon_refine.py -s $ROIstart -e $ROIend -i $extracted -o $pre_phase
 
-ECHO 'FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS Filtered_further.bam'
+ECHO "FINISHED FINAL FILTERING STEP BEFORE PHASING, FILE SAVE AS $pre_phase"
 
 ECHO 'CHECK7'
 
-# Variant calling using Samtools mpileup
-bcftools mpileup -uf $ref_genome $extracted | bcftools call -mv > variants.bcf
+# Variant calling using bcftools mpileup
+
 
 ECHO 'CHECK8'
 
 # Index the BCF file for efficient access
-bcftools index variants.bcf
+
 
 ECHO 'CHECK9'
 
 # Phase variants using BCFtools
-bcftools +split-vep -Ob -o phased_variants.bcf variants.bcf
+
 
 ECHO 'CHECK10'
 
 # Index the phased BCF file
-bcftools index phased_variants.bcf
