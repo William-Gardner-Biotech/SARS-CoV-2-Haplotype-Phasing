@@ -1,5 +1,6 @@
-*
+# Ignore everything in the root directory
+/*
 
-!DOCKERFILE
-!*.py
-!*.sh
+# But track bin and config directories and their contents
+!/bin/
+!/config/
